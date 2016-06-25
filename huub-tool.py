@@ -4,6 +4,9 @@ from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from getpass import getpass
 import time
+import datetime
+from os.path import expanduser
+
 # only python-selenium needed and chromewebview needed
 
 ## virtualdisplay so we dont get annoying messages
@@ -16,6 +19,20 @@ def elemInsert(element, text):
     element.clear()
     element.send_keys(text)
     return
+
+# best used with custom rc snippet for reminding etc
+def writeDate(dateList):
+    # only get most recent date
+    timeList = []
+    for d in dateList:
+        time = datetime.datetime.strptime(d.text, '%d.%m.%Y').timestamp()
+        timeList.append(int(time))
+    minimalDate = min(timeList)
+    print("soonest Date is {}".format(minimalDate))
+    home = expanduser("~")
+    home += "/.bib.epoch"
+    with open(home, 'w') as dateFile:
+        dateFile.write(str(minimalDate))
 
 driver = webdriver.Chrome()
 driver.get("https://www.ub.hu-berlin.de/de")
@@ -31,6 +48,7 @@ kontoLink = driver.find_element_by_link_text('Mein Konto')
 kontoLink.click()
 ddObjList = []
 ddObjList = driver.find_elements_by_css_selector("[id^='dueDate']")
+writeDate(ddObjList)
 print("Due dates for your HU Books")
 for r in ddObjList:
     print(r.text)
@@ -46,6 +64,7 @@ if lendCheck == "y":
     ddObjList = []
     ddObjList = driver.find_elements_by_css_selector("[id^='dueDate']")
     print("New due dates for your HU Books")
+    writeDate(ddObjList)
     for r in ddObjList:
         print(r.text)
 driver.close()
